@@ -4,7 +4,7 @@ import { Vote } from '../models/vote.model';
 import { pubClient, connectRedis } from '../utils/redis';
 import connectDB from '../db/connect.db';
 import dotenv from 'dotenv';
-import { Logger } from 'src/utils/logger';
+import { Logger } from '../utils/logger.js';
 
 dotenv.config({ path: './.env' });
 
