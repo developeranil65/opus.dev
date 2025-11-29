@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { verifyJWT, verifyJWT_Optional } from "../middlewares/auth.middleware.js";
-import { createPoll, getPollByCode, getPollResults, deletePoll, getMyPolls } from "../controllers/poll.controller.js";
+import { verifyJWT, verifyJWT_Optional } from "../middlewares/auth.middleware";
+import { createPoll, getPollByCode, getPollResults, deletePoll, getMyPolls } from "../controllers/poll.controller";
 
 const router = Router();
 

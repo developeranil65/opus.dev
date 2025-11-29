@@ -27,7 +27,7 @@
     "prom-client": "^15.1.0",
     "qrcode": "^1.5.3",
     "redis": "^4.6.13",
-    "winston": "^3.11.0",
+    "winston": "^3.18.3",
     "ws": "^8.16.0"
   },
   "devDependencies": {
@@ -39,6 +39,7 @@
     "@types/mongoose": "^5.11.97",
     "@types/node": "^20.11.25",
     "@types/qrcode": "^1.5.5",
+    "@types/winston": "^2.4.4",
     "@types/ws": "^8.5.10",
     "nodemon": "^3.1.0",
     "ts-node": "^10.9.2",
