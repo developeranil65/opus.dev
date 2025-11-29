@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",                       /* Modern Node.js support */
+    "module": "NodeNext",                     /* Efficient module loading */
+    "moduleResolution": "NodeNext",           
+    "baseUrl": ".",                           
+    "outDir": "./dist",                       /* Build output folder */
+    "rootDir": "./src",                       /* Source code folder */
+    "strict": true,                           /* Enable strict type checking (Resume Point!) */
+    "esModuleInterop": true,                  
+    "skipLibCheck": true,                     
+    "forceConsistentCasingInFileNames": true, 
+    "resolveJsonModule": true                 
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

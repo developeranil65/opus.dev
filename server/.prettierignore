@@ -1,0 +1,12 @@
+# Ignore dependencies and build artifacts
+node_modules/
+dist/
+coverage/
+
+# Ignore env files
+.env
+.env.*
+
+# Ignore lock files (optional, but often good practice)
+package-lock.json
+yarn.lock
