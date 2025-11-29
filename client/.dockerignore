@@ -1,0 +1,7 @@
+# This file is based on your .gitignore
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+*.md

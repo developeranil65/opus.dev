@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # 1. Frontend (Nginx + React)
+  client:
+    build: 
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"  # Expose Nginx on port 80
+    depends_on:
+      - server
+    restart: always
+
+  # 2. Backend API
+  server:
+    build: 
+      context: ./server
+      dockerfile: Dockerfile
+    expose:
+      - "3000" # Internal communication only
+    environment:
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongo:27017
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CORS_ORIGIN=http://localhost
+      # Pass these from your local .env or CI/CD secrets
+      - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
+      - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
+      - ACCESS_TOKEN_EXPIRY=${ACCESS_TOKEN_EXPIRY}
+      - REFRESH_TOKEN_EXPIRY=${REFRESH_TOKEN_EXPIRY}
+      - CLOUDINARY_NAME=${CLOUDINARY_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+    depends_on:
+      - mongo
+      - redis
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 3 # Scale to 3 instances (Simulates Production)
+
+  # 3. Background Worker
+  worker:
+    build: 
+      context: ./server
+      dockerfile: Dockerfile
+    command: ["npm", "run", "worker"] 
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CLOUDINARY_NAME=${CLOUDINARY_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+    depends_on:
+      - mongo
+      - redis
+    restart: always
+
+  # 4. Database
+  mongo:
+    image: mongo:6
+    ports:
+      - "27017:27017" # Exposed for local debugging (Compass)
+    volumes:
+      - mongo_data:/data/db
+
+  # 5. Cache & Queue
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"   # Exposed for local debugging
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mongo_data:
+  redis_data:
