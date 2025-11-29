@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
-import { ApiResponse } from "../utils/ApiResponse";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { generatePollCode } from "../utils/pollCodeGenerator";
-import { generateQRCodeAndUpload } from "../utils/qrCodeGenerator";
+import { generatePollCode } from "../utils/pollCodeGenerator.js";
+import { generateQRCodeAndUpload } from "../utils/qrCodeGenerator.js";
 import { Poll, IPoll } from "../models/poll.model";
-import { pubClient } from "../utils/redis";
+import { pubClient } from "../utils/redis.js";
 
 const createPoll = asyncHandler(async (req: Request, res: Response) => {
     const { title, options, isMultipleChoice, isPublicResult, expiresAt } = req.body;

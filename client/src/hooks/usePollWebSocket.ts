@@ -1,42 +1,50 @@
 import { useState, useEffect, useRef } from 'react';
 
-// Get WebSocket URL from environment
-const WS_URL = import.meta.env.VITE_WS_URL;
-
-// Define the shape of a single result option
 export interface PollResultOption {
   text: string;
   votes: number;
-  percentage?: string; // Percentage is optional as we might recalculate
+  percentage?: string;
 }
 
-// Define the shape of the data from the WebSocket
 interface WebSocketUpdate {
   type: 'VOTE_UPDATE';
   pollCode: string;
   results: PollResultOption[];
 }
 
+// Helper to determine the correct WebSocket URL dynamically
+const getWebSocketUrl = () => {
+  // 1. If explicitly set in .env (e.g. Local Dev), use it
+  if (import.meta.env.VITE_WS_URL) {
+    return import.meta.env.VITE_WS_URL;
+  }
+  
+  // 2. Production Fallback (Docker/Nginx)
+  // Automatically uses the current domain (localhost) and appends /ws
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const host = window.location.host; 
+  return `${protocol}//${host}/ws`;
+};
+
 export const usePollWebSocket = (pollCode: string) => {
-  // Store the latest results in state
   const [liveResults, setLiveResults] = useState<PollResultOption[] | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   
-  // Use a ref to hold the WebSocket object
+  const latestDataRef = useRef<PollResultOption[] | null>(null);
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    if (!pollCode) return;
+    // Prevent connecting if pollCode is missing or literally "undefined" string
+    if (!pollCode || pollCode === 'undefined') return;
 
-    // Create a new WebSocket connection
-    ws.current = new WebSocket(WS_URL);
+    const wsUrl = getWebSocketUrl();
+    console.log(`🔌 Connecting WebSocket to: ${wsUrl}`);
+
+    ws.current = new WebSocket(wsUrl);
 
     ws.current.onopen = () => {
       console.log('WebSocket Connected');
       setIsConnected(true);
-      
-      // Once connected, join the specific poll room
-      //
       ws.current?.send(JSON.stringify({
         type: 'JOIN_POLL',
         pollCode: pollCode,
@@ -46,15 +54,11 @@ export const usePollWebSocket = (pollCode: string) => {
     ws.current.onmessage = (event) => {
       try {
         const data: WebSocketUpdate = JSON.parse(event.data);
-        
-        // Listen for the 'VOTE_UPDATE' message
-        //
         if (data.type === 'VOTE_UPDATE' && data.pollCode === pollCode) {
-          console.log('Live vote update received:', data.results);
-          setLiveResults(data.results); // Update our state with the new results
+          latestDataRef.current = data.results;
         }
       } catch (error) {
-        console.error("Failed to parse WebSocket message:", error);
+        console.error("WS Parse Error:", error);
       }
     };
 
@@ -63,16 +67,18 @@ export const usePollWebSocket = (pollCode: string) => {
       setIsConnected(false);
     };
 
-    ws.current.onerror = (error) => {
-      console.error('WebSocket Error:', error);
-    };
+    // UI Throttle (60fps-ish or 1s updates)
+    const uiInterval = setInterval(() => {
+      if (latestDataRef.current) {
+        setLiveResults(latestDataRef.current);
+      }
+    }, 1000);
 
-    // Cleanup function to close the connection when the component unmounts
     return () => {
+      clearInterval(uiInterval);
       ws.current?.close();
     };
-  }, [pollCode]); // Re-connect if the pollCode changes
+  }, [pollCode]);
 
-  // Return the live results and connection status
   return { liveResults, isConnected };
 };
