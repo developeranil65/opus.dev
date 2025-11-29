@@ -1,4 +1,4 @@
-import "./workers/vote.worker.js";
+import "./workers/vote.worker";
 
 process.on('SIGTERM', async () => {
   console.log('Worker shutting down...');

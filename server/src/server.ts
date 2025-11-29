@@ -1,9 +1,10 @@
-import connectDB from "./db/connect.db.js";
+import connectDB from "./db/connect.db";
 import dotenv from "dotenv";
-import { app } from "./app.js";
+import { app } from "./app";
 import { createServer } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { connectRedis, subClient } from "./utils/redis.js";
+import { connectRedis, subClient } from "./utils/redis";
+import { Logger } from "./utils/logger";
 
 dotenv.config({ path: "./.env" });
 
@@ -19,7 +20,7 @@ interface ExtendedWebSocket extends WebSocket {
 
 // --- REDIS SUBSCRIBER SETUP ---
 async function setupSubscribers() {
-  console.log("🎧 Setting up Redis Subscriber...");
+  Logger.info("Setting up Redis Subscriber...");
   
   await subClient.subscribe('poll_updates', (message) => {
     try {
@@ -37,14 +38,14 @@ async function setupSubscribers() {
         }
       }
     } catch (err) {
-      console.error("❌ Error processing Redis message:", err);
+      Logger.error("Error processing Redis message:", err);
     }
   });
 }
 
 // --- WEBSOCKET CONNECTION HANDLER ---
 wss.on("connection", (ws: ExtendedWebSocket) => {
-  console.log("🔌 New Client Connected via WebSocket");
+  Logger.info("New Client Connected via WebSocket");
 
   ws.on("message", (msg: string) => {
     try {
@@ -59,10 +60,10 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         pollRooms.get(code)?.add(ws);
 
         ws.pollCode = code; 
-        console.log(`✅ Client joined room: ${code}`);
+        Logger.info(`Client joined room: ${code}`);
       }
     } catch (err) {
-      console.error("Invalid WS message", err);
+      Logger.error("Invalid WS message", err);
     }
   });
 
@@ -72,7 +73,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       if (room) {
         room.delete(ws);
         if (room.size === 0) pollRooms.delete(ws.pollCode);
-        console.log(`👋 Client left room: ${ws.pollCode}`);
+        Logger.info(`Client left room: ${ws.pollCode}`);
       }
     }
   });
@@ -86,15 +87,15 @@ const startServer = async () => {
 
     const PORT = process.env.PORT || 3000;
     server.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
+      Logger.info(`Server running on http://localhost:${PORT}`);
     });
 
     server.on("error", (error) => {
-      console.error("Server Error", error);
+      Logger.error("Server Error", error);
       throw error;
     });
   } catch (error) {
-    console.error("Startup failed", error);
+    Logger.error("Startup failed", error);
     process.exit(1);
   }
 };

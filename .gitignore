@@ -1,0 +1,15 @@
+# Ignore Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignore System Files
+.DS_Store
+Thumbs.db
+
+# Ignore Docker/Build artifacts (Optional but good practice)
+node_modules/
+dist/
+build/

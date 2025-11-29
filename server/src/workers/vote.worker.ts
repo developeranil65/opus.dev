@@ -1,9 +1,10 @@
 import { Worker, Job } from 'bullmq';
-import { Poll } from '../models/poll.model.js';
-import { Vote } from '../models/vote.model.js';
-import { pubClient, connectRedis } from '../utils/redis.js';
-import connectDB from '../db/connect.db.js';
+import { Poll } from '../models/poll.model';
+import { Vote } from '../models/vote.model';
+import { pubClient, connectRedis } from '../utils/redis';
+import connectDB from '../db/connect.db';
 import dotenv from 'dotenv';
+import { Logger } from 'src/utils/logger';
 
 dotenv.config({ path: './.env' });
 
@@ -16,7 +17,7 @@ const startWorker = async () => {
   try {
     await connectDB();
     await connectRedis();
-    console.log("✅ Worker connected to Redis & MongoDB");
+    Logger.info("Worker connected to Redis & MongoDB");
   } catch (err) {
     console.error("Worker connection failed", err);
     process.exit(1);
@@ -37,7 +38,7 @@ const processVote = async (job: Job) => {
     }
 
     if (pollCheck.expiresAt && new Date(pollCheck.expiresAt) < new Date()) {
-      console.log(`Poll ${pollCode} expired. Vote rejected.`);
+      Logger.warn(`Poll ${pollCode} expired. Vote rejected.`);
       return;
     }
 
@@ -66,7 +67,7 @@ const processVote = async (job: Job) => {
     );
 
     if (!updatedPoll) {
-      console.log(`Duplicate vote blocked by DB for ${voterIP} on ${pollCode}`);
+      Logger.warn(`Duplicate vote blocked by DB for ${voterIP} on ${pollCode}`);
       return;
     }
 
@@ -94,11 +95,11 @@ const processVote = async (job: Job) => {
             }
         }));
         
-        console.log(`📡 Batch Update sent for ${pollCode}`);
+        Logger.info(`Batch Update sent for ${pollCode}`);
     }
 
   } catch (error) {
-    console.error(`❌ Job Failed for ${pollCode}:`, error);
+    Logger.error(`Job Failed for ${pollCode}:`, error);
     throw error; 
   }
 };
@@ -108,6 +109,6 @@ const worker = new Worker('vote-queue', processVote, {
   concurrency: 5, 
 });
 
-console.log("👷 Vote Worker Started...");
+Logger.info("Vote Worker Started...");
 
 export default worker;

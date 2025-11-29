@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { ApiError } from "../utils/ApiError.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError";
+import { asyncHandler } from "../utils/asyncHandler";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { User, IUser } from "../models/user.model.js";
+import { User, IUser } from "../models/user.model";
 
 // Extend Request type to include user
 declare global {
